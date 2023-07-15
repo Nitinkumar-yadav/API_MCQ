@@ -17,9 +17,6 @@ from PyPDF2 import PdfReader
 
 import uvicorn
 
-
-
-
 load_dotenv()
 
 def extract_pdf(pdf):
