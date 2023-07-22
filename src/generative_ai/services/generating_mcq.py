@@ -13,9 +13,20 @@ import re
 # To Converting String into JSON String 
 import json
 
-openai_api="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"
-        
+from utils.logger import logManager
+from utils.config import ConfigManager
+
+
+logger = logManager()
+
 def generating_mcq(chunks):
+        
+    try:
+
+        # Load API key from config file
+        config_manager = ConfigManager()
+        api_key = config_manager.get_api_key()
+
         response_schemas = [
         ResponseSchema(name="Question", description="A multiple choice question generated."),
         ResponseSchema(name="Options", description="Possible choices for the multiple choice question."),
@@ -28,10 +39,8 @@ def generating_mcq(chunks):
         # The format instructions that LangChain makes. Let's look at them
         format_instructions = output_parser.get_format_instructions()
 
-
         # create ChatGPT object
-        chat_model = ChatOpenAI(temperature=0, model_name='gpt-3.5-turbo',openai_api=openai_api)
-
+        chat_model = ChatOpenAI(temperature=0, model_name='gpt-3.5-turbo',openai_api_key= api_key)
 
         prompt = ChatPromptTemplate(
         messages=[
@@ -46,9 +55,8 @@ def generating_mcq(chunks):
         input_variables=["user_prompt"],
         partial_variables={"format_instructions": format_instructions}
         )
-
         # Passing single chunks 
-        for chunk in chunks[:1]:
+        for chunk in chunks[:100:102]:
              
             user_query = prompt.format_prompt(user_prompt = chunk)
             user_query_output =chat_model(user_query.to_messages())
@@ -59,4 +67,10 @@ def generating_mcq(chunks):
             # Convert JSON string to Python list
             python_list = json.loads(f'[{json_string}]')
         
+        logger.info("MCQ successfully Generated")
         return python_list
+    
+    except Exception as e:
+        logger.error(f"Error message: {str(e)}")
+   
+    
